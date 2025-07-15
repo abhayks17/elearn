@@ -1,0 +1,597 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Student Submissions{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f0f2f5; /* Lighter background for better contrast with cards */
+    }
+
+    .container {
+        max-width: 800px; /* Wider container for more cards per row */
+        margin: 40px auto;
+        padding: 30px;
+        background: #fff;
+        border-radius: 12px; /* Slightly more rounded corners */
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08); /* Stronger shadow */
+    }
+
+    h1, h2 {
+        color: #0056b3;
+        margin-bottom: 25px;
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 10px;
+    }
+
+    h1 {
+        font-size: 2.8em; /* Slightly larger title */
+        text-align: center;
+        color: #004085;
+        font-weight: 600; /* Bolder title */
+    }
+
+    h2 {
+        font-size: 2.2em;
+        color: #0056b3;
+        margin-top: 40px; /* More space above course titles */
+        padding-left: 10px;
+        display: flex; /* Flexbox for alignment */
+        justify-content: space-between; /* Space between title and weightage info */
+        align-items: baseline; /* Align text baselines */
+    }
+    /* New style for the weightage info */
+    h2 span.weightage-info {
+        font-size: 0.6em; /* Smaller font for details */
+        color: #666;
+        font-weight: normal;
+        margin-left: 15px;
+        text-align: right; /* Align text within its span */
+    }
+
+
+    .course-section {
+        margin-bottom: 50px; /* Space between course sections */
+        background-color: #fcfcfc; /* Slightly different background for course section */
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .student-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); /* Responsive grid for students */
+        gap: 25px; /* Gap between student cards */
+        list-style: none;
+        padding: 0;
+    }
+
+    .student-card {
+        background-color: #ffffff;
+        border: 1px solid #e0e6ec;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+        padding: 20px;
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .student-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    .submission-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 15px;
+    }
+
+    .submission-card {
+        background-color: #f8fcff; /* Lighter background for submission cards */
+        border: 1px solid #cce5ff; /* Light blue border */
+        border-radius: 8px;
+        padding: 18px;
+        margin-bottom: 15px; /* Space between submission cards */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    strong {
+        color: #004085;
+    }
+
+    .submission-detail {
+        margin-bottom: 8px; /* More space between details */
+        font-size: 0.95em;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    input[type="date"],
+    select { /* Added select for the course dropdown */
+        width: calc(100% - 20px); /* Adjust width considering padding */
+        padding: 10px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        font-size: 0.9em;
+    }
+
+    button {
+        background-color: #007bff; /* Primary blue for action buttons */
+        color: white;
+        padding: 10px 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        margin-top: 10px;
+        margin-right: 8px; /* Added for spacing between buttons */
+    }
+
+    button:hover {
+        background-color: #0056b3;
+        transform: translateY(-1px);
+    }
+
+    button:active {
+        transform: translateY(0);
+    }
+
+    .plagiarism-result {
+        margin-top: 15px;
+        padding: 12px;
+        border: 1px solid #d1ecf1; /* Light blue for info */
+        border-radius: 5px;
+        background-color: #e2f3f7; /* Lighter blue background */
+        font-size: 0.9em;
+        line-height: 1.5;
+    }
+
+    .plagiarism-result strong {
+        color: #007bff; /* Use primary blue for strong in plagiarism result */
+    }
+
+    .plagiarism-result h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #0056b3;
+    }
+
+    .plagiarism-result ul {
+        margin-top: 5px;
+        padding-left: 20px;
+        list-style: disc;
+    }
+
+    .plagiarism-result ul li {
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 2px 0;
+        margin-bottom: 3px;
+        font-size: 0.85em;
+    }
+
+    .error-message {
+        color: #dc3545;
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .success-message { /* New style for success */
+        color: #28a745;
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 25px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    .empty-state {
+        color: #6c757d;
+        font-style: italic;
+        text-align: center;
+        margin-top: 30px;
+        padding: 20px;
+        background-color: #e9ecef;
+        border-radius: 8px;
+        font-size: 1.1em;
+    }
+
+    details summary {
+        cursor: pointer;
+        font-size: 1.3em; /* Larger student name */
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #0056b3;
+        padding: 5px 0;
+    }
+
+    details summary:hover {
+        color: #004085;
+        text-decoration: none; /* Remove underline on hover, prefer color change */
+    }
+
+    details[open] > summary {
+        color: #004085;
+    }
+
+    /* Styles for the new collapsible assignment form */
+    details.create-assignment-details {
+        background-color: #e9f5ff; /* Lighter blue background for details block */
+        border: 1px solid #cce5ff;
+        border-radius: 8px;
+        padding: 15px 20px; /* Adjust padding for details */
+        margin-top: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    details.create-assignment-details summary {
+        cursor: pointer;
+        font-size: 1.8em; /* Make the summary title prominent */
+        font-weight: bold;
+        color: #0056b3;
+        list-style: none; /* Remove default arrow/marker */
+        position: relative; /* For custom arrow */
+        padding-right: 30px; /* Space for custom arrow */
+    }
+    details.create-assignment-details summary:hover {
+        color: #004085;
+    }
+    /* Custom arrow for summary */
+    details.create-assignment-details summary::-webkit-details-marker {
+        display: none;
+    }
+    details.create-assignment-details summary::before {
+        content: '▶'; /* Right-pointing triangle */
+        position: absolute;
+        right: 0;
+        font-size: 0.8em;
+        top: 50%;
+        transform: translateY(-50%);
+        transition: transform 0.2s;
+    }
+    details.create-assignment-details[open] summary::before {
+        content: '▼'; /* Down-pointing triangle when open */
+        transform: translateY(-50%) rotate(90deg); /* Rotate for a smoother animation */
+    }
+
+    /* Style for the form content inside details */
+    .create-assignment-form-content {
+        padding-top: 15px; /* Space between summary and form */
+    }
+
+    .create-assignment-form-content label {
+        display: block;
+        margin-top: 15px; /* Space between labels */
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+</style>
+
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<script>
+function checkPlagiarism(submissionName) {
+    const resultEl = document.getElementById(`plagiarism_result_${submissionName}`);
+    resultEl.innerText = "Checking...";
+    resultEl.style.color = "#0056b3";
+    resultEl.style.backgroundColor = "#e2f3f7";
+    resultEl.style.borderColor = "#d1ecf1";
+
+    fetch(`/api/method/elearn.api.plagiarism.check_plagiarism?submission_name=${submissionName}`)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw new Error(err.message || `HTTP error! status: ${response.status}`); });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.message) {
+                const result = data.message;
+                const sources = result.sources || [];
+
+                let sourcesHtml = "";
+                if (sources.length > 0) {
+                    sourcesHtml = "<h4>Sources Detected:</h4><ul>";
+                    for (const s of sources) {
+                        sourcesHtml += `<li><a href="${s.url}" target="_blank">${s.title || s.url}</a> (Score: ${s.score}%)</li>`;
+                    }
+                    sourcesHtml += "</ul>";
+                } else {
+                    sourcesHtml = "<p>No significant sources detected.</p>";
+                }
+
+                resultEl.innerHTML = `Similarity: <strong>${result.similarity}%</strong><br>${sourcesHtml}`;
+                resultEl.style.color = "#333";
+                resultEl.classList.add('plagiarism-result');
+                resultEl.style.backgroundColor = "#e2f3f7";
+                resultEl.style.borderColor = "#d1ecf1";
+            } else {
+                resultEl.innerText = "❌ Error checking plagiarism: " + (data.error || "Unknown error.");
+                resultEl.style.color = "#dc3545";
+                resultEl.style.backgroundColor = "#f8d7da";
+                resultEl.style.borderColor = "#f5c6cb";
+            }
+        })
+        .catch(err => {
+            console.error("Fetch error:", err);
+            resultEl.innerText = `❌ Error occurred: ${err.message}`;
+            resultEl.style.color = "#dc3545";
+            resultEl.style.backgroundColor = "#f8d7da";
+            resultEl.style.borderColor = "#f5c6cb";
+        });
+}
+
+function submitGrade(submissionName) {
+    const gradeInput = document.getElementById(`grade_${submissionName}`);
+    const feedbackInput = document.getElementById(`feedback_${submissionName}`);
+    const grade = parseInt(gradeInput.value);
+    const feedback = feedbackInput.value;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+
+    if (isNaN(grade) || grade < 0 || grade > 100) {
+        alert("Please enter a valid grade between 0 and 100.");
+        return;
+    }
+
+    const gradeButton = feedbackInput.nextElementSibling;
+    if (!gradeButton || gradeButton.tagName !== 'BUTTON') {
+        console.error("Grade button not found correctly.");
+        alert("Error: Grade button not found.");
+        return;
+    }
+
+    const originalButtonText = gradeButton.innerText;
+    gradeButton.innerText = "Submitting...";
+    gradeButton.disabled = true;
+
+    fetch("/api/method/elearn.api.assignment_submission.grade_submission", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-Frappe-CSRF-Token": csrfToken
+        },
+        body: JSON.stringify({
+            submission_name: submissionName,
+            grade: grade,
+            feedback: feedback
+        })
+    })
+    .then(res => {
+        if (!res.ok) {
+            return res.json().then(err => { throw new Error(err.message || `HTTP error! status: ${res.status}`); });
+        }
+        return res.json();
+    })
+    .then(data => {
+    console.log("Response:", data);
+    if (data.message) {
+        alert(data.message);
+        const submissionDiv = gradeInput.closest('.submission-card');
+        if (submissionDiv) {
+            // ✅ Capture these BEFORE updating the innerHTML
+            const assignmentName = submissionDiv.querySelector('[data-assignment]')?.dataset.assignment || '';
+            const weightage = submissionDiv.querySelector('[data-weightage]')?.dataset.weightage || '';
+            const submissionText = submissionDiv.querySelector('[data-submission-text]')?.dataset.submissionText || '';
+            // const qType = submissionDiv.querySelector('[data-q-type]')?.dataset.qType || '';
+
+            // 🔁 Now safely update the DOM using the captured values
+            submissionDiv.innerHTML = `
+                <div class="submission-detail" data-assignment="${assignmentName}"><strong>Assignment:</strong> ${assignmentName}</div>
+                <div class="submission-detail" data-weightage="${weightage}"><strong>Weightage:</strong> ${weightage}%</div>
+                <div class="submission-detail"><strong>Status:</strong> Graded</div>
+                <div class="submission-detail" data-submission-text="${submissionText}"><strong>Submission Text:</strong> ${submissionText || "N/A"}</div>
+                <div class="submission-detail"><strong>Grade:</strong> ${grade}</div>
+                <div class="submission-detail"><strong>Feedback:</strong> ${feedback || 'N/A'}</div>
+                <p id="plagiarism_result_${submissionName}" class="plagiarism-result"></p>
+                <button onclick="checkPlagiarism('${submissionName}')">Check Plagiarism</button>
+            `;
+        }
+    } else {
+        alert("Error submitting grade: " + (data.error || "Unknown error."));
+    }
+})
+.catch(err => {
+    console.error("Error:", err);
+    alert("Error submitting grade: " + err.message);
+})
+.finally(() => {
+    gradeButton.innerText = originalButtonText;
+    gradeButton.disabled = false;
+});
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const assignmentForms = document.querySelectorAll(".create-assignment-form");
+
+    assignmentForms.forEach(form => {
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const course = form.querySelector('input[name="course_id"]').value;
+            const title = form.querySelector('[name="title"]').value;
+            const due_date = form.querySelector('[name="due_date"]').value;
+            const weightage = parseInt(form.querySelector('[name="weightage"]').value);
+            const q_type = form.querySelector('[name="q_type"]').value;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
+
+            const messageBox = form.closest('.create-assignment-form-content').querySelector('.assignment-create-message');
+            messageBox.innerText = "Creating assignment...";
+            messageBox.className = "assignment-create-message";
+            messageBox.style.color = "";
+
+            fetch("/api/method/elearn.api.assignment.create_assignment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-Frappe-CSRF-Token": csrfToken
+                },
+                body: JSON.stringify({
+                    course_id: course,
+                    title: title,
+                    due_date: due_date,
+                    weightage: weightage,
+                    q_type: q_type
+                })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(errData => {
+                        const errorMessage = errData._server_messages ?
+                                             JSON.parse(errData._server_messages)[0].message :
+                                             (errData.message || "Unknown error occurred on server.");
+                        throw new Error(errorMessage);
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                if (data.message === "Assignment created" || (data.message && data.message.name)) {
+                    messageBox.className = "assignment-create-message success-message";
+                    messageBox.innerText = "✅ Assignment created successfully.";
+                    form.reset();
+                    // Optionally, close the details tag after success
+                    // form.closest('details').removeAttribute('open');
+                    setTimeout(() => window.location.reload(), 1500); // Reload to show updated weightage
+                } else {
+                    messageBox.className = "assignment-create-message error-message";
+                    messageBox.innerText = "❌ Failed: " + (data.message || "Unknown error.");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                messageBox.className = "assignment-create-message error-message";
+                messageBox.innerText = "❌ Error: " + err.message;
+            });
+        });
+    });
+});
+</script>
+
+<div class="container">
+  <h1>Student Submissions</h1>
+
+  {% if error %}
+    <p class="error-message">{{ error }}</p>
+  {% endif %}
+
+  {% if data %}
+    {% for course_name, course_data in data.items() %}
+      <div class="course-section">
+        <h2>
+          {{ course_data.title }}
+          {# Display total weightage and marks left #}
+          <span class="weightage-info">
+            Total Assigned: {{ course_data.total_assigned_weightage }}/100
+            {% set marks_left = 100 - course_data.total_assigned_weightage %}
+            {% if marks_left < 0 %}
+                (Over-assigned by {{ -marks_left }} marks!)
+            {% elif marks_left > 0 %}
+                ({{ marks_left }} marks left to assign)
+            {% else %}
+                (All marks assigned!)
+            {% endif %}
+          </span>
+        </h2>
+
+        {# --- Create New Assignment Form for THIS Course (Collapsible Block) --- #}
+        <details class="create-assignment-details">
+            <summary>Create New Assignment for {{ course_data.title }}</summary>
+            <div class="create-assignment-form-content">
+                <form class="create-assignment-form">
+                    {# Hidden input to pass the course ID implicitly #}
+                    <input type="hidden" name="course_id" value="{{ course_name }}">
+
+                    <label for="title_{{ course_name }}">Title:</label>
+                    <input type="text" id="title_{{ course_name }}" name="title" placeholder="Assignment Title" required>
+
+                    <label for="due_date_{{ course_name }}">Due Date:</label>
+                    <input type="date" id="due_date_{{ course_name }}" name="due_date" required>
+
+                    <label for="weightage_{{ course_name }}">Weightage (%):</label>
+                    <input type="number" id="weightage_{{ course_name }}" name="weightage" min="1" max="100" required>
+
+                    <label for="q_type_{{ course_name }}">Question Type:</label>
+                    <select name="q_type" id="q_type_{{ course_name }}" required>
+                        <option value="Theory">Theory</option>
+                        <option value="Coding">Coding</option>
+                    </select>
+
+                    <button type="submit">Create Assignment</button>
+                </form>
+                {# Message box for THIS form (inside the content div) #}
+                <p class="assignment-create-message"></p>
+            </div>
+        </details>
+        {# --- End Create New Assignment Form --- #}
+
+
+        {% if course_data.students %}
+          <ul class="student-list">
+          {% for student, submissions in course_data.students.items() %}
+            <li class="student-card">
+              <details>
+                <summary>{{ student }}</summary>
+                <ul class="submission-list">
+                  {% for sub in submissions %}
+                    <li class="submission-card">
+                      <div class="submission-detail" data-assignment="{{ sub.assignment }}"><strong>Assignment:</strong> {{ sub.assignment }}</div>
+                      <div class="submission-detail" data-weightage="{{ sub.weightage }}"><strong>Weightage:</strong> {{ sub.weightage }}%</div>
+                      <div class="submission-detail"><strong>Submission Text:</strong> {{ sub.text or "N/A" }}</div>
+
+{% if sub.file_url %}
+  <div class="submission-detail">
+    <strong>File:</strong>
+    <a href="{{ sub.file_url }}" target="_blank">View File</a>
+  </div>
+{% endif %}
+
+                      {# Display q_type here if it's fetched in get_context #}
+                      {% if sub.q_type %}
+                         <div class="submission-detail"><strong>Type:</strong> {{ sub.q_type }}</div>
+                      {% endif %}
+                      <div class="submission-detail"><strong>Status:</strong> {{ sub.status }}</div>
+                   
+                      {% if sub.status != "Graded" %}
+                        <input type="number" min="0" max="100" id="grade_{{ sub.name }}" placeholder="Enter Grade (0-100)">
+                        <input type="text" id="feedback_{{ sub.name }}" placeholder="Optional Feedback">
+                        <button onclick="submitGrade('{{ sub.name }}')">Submit Grade</button>
+                      {% else %}
+                      
+                        <div class="submission-detail"><strong>Grade:</strong> {{ sub.grade }}</div>
+                        <div class="submission-detail"><strong>Feedback:</strong> {{ sub.feedback or "N/A" }}</div>
+                        <div class="submission-detail"><strong>Status:</strong> {{ sub.status }}</div>
+                      {% endif %}
+
+                      <p id="plagiarism_result_{{ sub.name }}" class="plagiarism-result"></p>
+                      <button onclick="checkPlagiarism('{{ sub.name }}')">Check Plagiarism</button>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </details>
+            </li>
+          {% endfor %}
+          </ul>
+        {% else %}
+          <p class="empty-state"><em>No student submissions in this course.</em></p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="empty-state">Only Instructors can access.</p>
+  {% endif %}
+</div>
+{% endblock %}

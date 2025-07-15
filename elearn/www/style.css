@@ -1,0 +1,210 @@
+/* General Body and Container Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    text-align: center;
+    color: #007bff;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+    font-weight: 600;
+}
+
+/* Course List and Card Styles */
+.course-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.course-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.course-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.course-card a {
+    text-decoration: none;
+    color: inherit;
+    flex-grow: 1; /* Allows the link area to expand */
+    display: flex;
+    flex-direction: column;
+}
+
+.course-header {
+    padding: 25px;
+    flex-grow: 1;
+}
+
+.course-header h2 {
+    color: #007bff;
+    font-size: 1.8em;
+    margin-top: 0;
+    margin-bottom: 10px;
+    word-break: break-word; /* Prevents long titles from overflowing */
+}
+
+.course-header p {
+    font-size: 1em;
+    color: #555;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Limit description to 3 lines */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.course-header ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.95em;
+}
+
+.course-header ul li {
+    margin-bottom: 8px;
+    color: #444;
+    display: flex;
+    align-items: center;
+}
+
+.course-header ul li strong {
+    color: #222;
+    margin-right: 5px;
+}
+
+/* Tags for Certificate and Trial */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+.tag.certified {
+    background-color: #e0f7fa;
+    color: #00796b;
+    border: 1px solid #00796b;
+}
+
+.tag.trial {
+    background-color: #fff3e0;
+    color: #f57c00;
+    border: 1px solid #f57c00;
+}
+
+/* Enroll Button and Already Enrolled Message */
+.course-card form {
+    padding: 0 25px 25px; /* Align with header padding */
+}
+
+.course-card button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    width: 100%;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.course-card button:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+.course-card button:active {
+    transform: translateY(0);
+}
+
+.course-card p strong {
+    display: block;
+    text-align: center;
+    padding: 15px 25px;
+    font-size: 1.1em;
+    background-color: #e6ffe6; /* Light green background for enrolled message */
+    border-top: 1px solid #c8e6c9;
+    border-radius: 0 0 8px 8px; /* Rounded corners only at the bottom */
+}
+
+/* No Courses Found Message */
+.container > p {
+    text-align: center;
+    font-size: 1.2em;
+    color: #777;
+    padding: 50px 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+
+    .course-list {
+        grid-template-columns: 1fr; /* Stack cards on smaller screens */
+    }
+
+    .course-header h2 {
+        font-size: 1.5em;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        margin: 15px auto;
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    .course-header {
+        padding: 20px;
+    }
+
+    .course-card button {
+        padding: 10px 15px;
+        font-size: 0.95em;
+    }
+}

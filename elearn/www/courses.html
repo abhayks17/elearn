@@ -1,0 +1,500 @@
+{% extends "templates/web.html" %}
+{% block title %}Course Catalog{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<style>
+/* Global Styling & Typography */
+body {
+    font-family: 'Inter', sans-serif; /* Consistent modern font */
+    color: #333;
+    background-color: #f8f9fa; /* Consistent light background */
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px; /* Wider container for more content */
+    margin: 40px auto; /* More margin top/bottom */
+    padding: 0 25px; /* Consistent padding */
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 40px; /* More space below title */
+    font-size: 3.2em; /* Larger, more impactful title */
+    color: #007bff; /* Primary brand color */
+    font-weight: 700; /* Bolder */
+}
+
+/* Filters Section */
+.filters-section {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    padding: 25px 30px; /* More padding */
+    margin-bottom: 40px; /* More space below filters */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center; /* Center filter elements */
+    gap: 20px; /* Space between filter elements */
+}
+
+.filters-section h2 {
+    width: 100%;
+    text-align: center;
+    font-size: 1.8em;
+    color: #2c3e50;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column; /* Stack label and input */
+    align-items: flex-start;
+}
+
+.filter-group label {
+    font-size: 0.95em;
+    color: #555;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.filters-section select,
+.filters-section input[type="checkbox"] {
+    padding: 10px 12px; /* More padding */
+    font-size: 1em; /* Larger font */
+    border: 1px solid #ced4da;
+    border-radius: 8px; /* More rounded */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    background-color: #fff;
+    cursor: pointer;
+    -webkit-appearance: none; /* Remove default browser styling for selects */
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.filters-section select {
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23495057" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    padding-right: 35px; /* Space for the arrow */
+}
+
+
+.filters-section select:focus,
+.filters-section input[type="checkbox"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.filters-section input[type="checkbox"] {
+    margin-right: 8px; /* Space between checkbox and label text */
+    width: 18px; /* Standardize checkbox size */
+    height: 18px;
+    vertical-align: middle;
+}
+
+/* Course List */
+.course-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Slightly wider min width */
+    gap: 30px; /* More space between cards */
+}
+
+.course-card {
+    background: #fff;
+    border-radius: 12px; /* More rounded corners */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* Softer, slightly larger shadow */
+    padding: 25px; /* More padding */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smoother transition */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.course-card:hover {
+    transform: translateY(-8px); /* More pronounced lift */
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15); /* Stronger shadow on hover */
+}
+
+.course-card a {
+    text-decoration: none;
+    color: inherit;
+    flex-grow: 1; /* Allow content to grow */
+    display: flex;
+    flex-direction: column;
+}
+
+.course-header {
+    margin-bottom: 15px; /* Space between header and list */
+    flex-grow: 1; /* Allows course header content to fill space */
+}
+
+.course-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.8em; /* Larger title */
+    color: #007bff;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.course-header p {
+    font-size: 1em; /* Standard font size */
+    color: #555;
+    margin-bottom: 15px;
+    min-height: 40px; /* Ensure consistent height for description */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Limit description to 2 lines */
+    -webkit-box-orient: vertical;
+}
+
+.course-meta-list { /* Renamed from ul to be more semantic and avoid conflicts */
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+    font-size: 0.95em; /* Slightly larger */
+    color: #333;
+}
+
+.course-meta-list li {
+    margin-bottom: 8px; /* More space between list items */
+    display: flex;
+    align-items: center;
+}
+
+.course-meta-list li strong {
+    margin-right: 5px;
+    color: #444;
+}
+
+.tag {
+    display: inline-flex; /* Use flex for icon alignment */
+    align-items: center;
+    padding: 5px 10px; /* More padding */
+    border-radius: 6px; /* More rounded */
+    font-size: 0.85em; /* Slightly larger */
+    font-weight: 500;
+    color: #fff;
+    margin-right: 8px; /* Space if multiple tags */
+}
+
+.tag i {
+    margin-right: 6px; /* Space between icon and text */
+}
+
+.tag.certified {
+    background: #28a745; /* Consistent green */
+}
+
+.tag.trial {
+    background: #17a2b8; /* Consistent cyan/teal */
+}
+
+/* Enrollment Button/Status */
+.enroll-action {
+    margin-top: 20px; /* Space above button/status */
+}
+
+.enroll-button { /* Renamed from button[type="submit"] for clarity */
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 12px 25px; /* More padding */
+    border-radius: 8px; /* More rounded */
+    cursor: pointer;
+    font-size: 1.05em; /* Slightly larger font */
+    font-weight: 600;
+    width: 100%; /* Full width button */
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+}
+
+.enroll-button:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
+}
+
+.already-enrolled-message {
+    text-align: center;
+    color: #28a745; /* Consistent green for enrolled status */
+    font-weight: 600;
+    padding: 10px 0;
+    border: 1px solid #c3e6cb; /* Light green border */
+    background-color: #d4edda; /* Light green background */
+    border-radius: 8px;
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* No Courses Found Message */
+.no-courses-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: #6c757d;
+    padding: 50px 20px;
+    background-color: #f0f3f6;
+    border-radius: 10px;
+    margin-top: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .container {
+        padding: 0 20px;
+    }
+    h1 {
+        font-size: 2.8em;
+    }
+    .filters-section {
+        padding: 20px 25px;
+    }
+    .filters-section h2 {
+        font-size: 1.6em;
+    }
+    .course-list {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+    }
+    .course-card {
+        padding: 20px;
+    }
+    .course-header h2 {
+        font-size: 1.6em;
+    }
+    .enroll-button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        margin: 30px auto;
+        padding: 0 15px;
+    }
+    h1 {
+        font-size: 2.4em;
+        margin-bottom: 30px;
+    }
+    .filters-section {
+        flex-direction: column; /* Stack filters on smaller screens */
+        align-items: stretch; /* Stretch to fill width */
+        padding: 15px 20px;
+        margin-bottom: 30px;
+        gap: 15px;
+    }
+    .filters-section h2 {
+        font-size: 1.4em;
+        margin-bottom: 20px;
+    }
+    .filter-group {
+        width: 100%; /* Full width for each filter */
+    }
+    .filters-section select,
+    .filters-section input[type="checkbox"] {
+        width: 100%; /* Full width for inputs/selects */
+        box-sizing: border-box;
+    }
+    .course-list {
+        grid-template-columns: 1fr; /* Stack cards on mobile */
+        gap: 20px;
+    }
+    .course-card {
+        padding: 18px;
+    }
+    .course-header h2 {
+        font-size: 1.4em;
+    }
+    .course-header p {
+        min-height: unset; /* Allow height to be dynamic on mobile */
+        -webkit-line-clamp: unset;
+    }
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% if is_instructor %}
+    <div class="filters-section" style="justify-content: space-around; background: #e6f0ff;">
+        <a href="/student_report" class="btn-courses"><i class="fas fa-chart-bar"></i> Student Report</a>
+        <a href="/assignment_review" class="btn-courses"><i class="fas fa-file-alt"></i> Assignment Review</a>
+    </div>
+{% endif %}
+
+    <h1><i class="fas fa-swatchbook" style="margin-right: 15px;"></i> Course Catalog</h1>
+
+    <div class="filters-section">
+        <h2>Filter Courses</h2>
+        <div class="filter-group">
+            <label for="filterDifficulty"><i class="fas fa-sliders-h"></i> Difficulty</label>
+            <select id="filterDifficulty">
+                <option value="">All Difficulty Levels</option>
+                <option value="Beginner">Beginner</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filterRating"><i class="fas fa-star"></i> Min. Rating</label>
+            <select id="filterRating">
+                <option value="0">Any Rating</option>
+                <option value="1">1+ ⭐</option>
+                <option value="2">2+ ⭐</option>
+                <option value="3">3+ ⭐</option>
+                <option value="4">4+ ⭐</option>
+                <option value="5">5 ⭐</option>
+            </select>
+        </div>
+
+        <div class="filter-group">
+            <label for="filterCertificate" style="display: flex; align-items: center;">
+                <input type="checkbox" id="filterCertificate">
+                <i class="fas fa-award"></i> Certificate Available
+            </label>
+        </div>
+    </div>
+
+    {% if courses %}
+        <div class="course-list">
+            {% for course in courses %}
+                <div class="course-card"
+                    data-difficulty="{{ course.difficulty or '' }}"
+                    data-rating="{{ course.rating or 0 }}"
+                    data-certificate="{{ 'yes' if course.has_certificate else 'no' }}">
+                    <a href="/course/course_detail?name={{ course.encoded_name }}">
+                        <div class="course-header">
+                            <h2>{{ course.title }}</h2>
+                            <p>{{ course.course_description or "No description available." }}</p>
+                            <ul class="course-meta-list">
+                                {% if course.instructor %}
+                               {% set instr = frappe.get_doc("User", course.instructor) %}
+<li>
+  <strong><i class="fas fa-chalkboard-teacher"></i> Instructor:</strong> {{ instr.full_name }}
+</li>
+
+                                {% endif %}
+                                {% if course.difficulty %}
+                                    <li><strong><i class="fas fa-signal"></i> Difficulty:</strong> {{ course.difficulty }}</li>
+                                {% endif %}
+                                {% if course.rating %}
+                                    <li><strong><i class="fas fa-star"></i> Rating:</strong> {{ course.rating }} ⭐</li>
+                                {% endif %}
+                                {% if course.lessons_count is not none %}
+                                    <li><strong><i class="fas fa-book"></i> Lessons:</strong> {{ course.lessons_count }}</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="course-tags">
+                            {% if course.has_certificate %}
+                                <span class="tag certified"><i class="fas fa-certificate"></i> Certificate</span>
+                            {% endif %}
+                            {% if course.trial_available %}
+                                <span class="tag trial"><i class="fas fa-cube"></i> Trial</span>
+                            {% endif %}
+                        </div>
+                    </a>
+
+                    {% if not is_instructor %}
+<div class="enroll-action">
+    {% if not course.already_enrolled %}
+        <form method="POST" onsubmit="return enrollCourse('{{ course.name }}');">
+            <button type="submit" class="enroll-button"><i class="fas fa-user-plus"></i> Enroll Now</button>
+        </form>
+    {% else %}
+        <p class="already-enrolled-message">
+            <i class="fas fa-check-circle"></i> Already Enrolled
+        </p>
+    {% endif %}
+</div>
+{% endif %}
+
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-courses-message">
+            No courses found matching your criteria. Please adjust your filters or check back later!
+        </p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+function enrollCourse(courseId) {
+    fetch('/api/method/elearn.api.course.enroll', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': frappe.csrf_token
+        },
+        body: JSON.stringify({ course_id: courseId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) {
+            alert(data.message);
+        } else if (data.error) {
+            alert("Error: " + data.error);
+        } else {
+            alert("Enrollment successful.");
+        }
+        location.reload();
+    })
+    .catch(err => {
+        alert("Error during enrollment: " + err);
+        console.error("Enrollment fetch error:", err);
+    });
+    return false;
+}
+
+function applyFilters() {
+    const diff = document.getElementById('filterDifficulty').value;
+    const rating = parseInt(document.getElementById('filterRating').value);
+    const cert = document.getElementById('filterCertificate').checked;
+
+    document.querySelectorAll('.course-card').forEach(card => {
+        const cDiff = card.getAttribute('data-difficulty');
+        const cRating = parseInt(card.getAttribute('data-rating'));
+        const cCert = card.getAttribute('data-certificate');
+
+        let show = true;
+
+        if (diff && cDiff !== diff) show = false;
+        if (cRating > 0 && cRating > cRating) show = false; /* Corrected logic: if card rating is less than selected min rating */
+        if (cRating < rating) show = false; // This is the correct logic for min rating filter
+        if (cert && cCert !== 'yes') show = false;
+
+        card.style.display = show ? 'flex' : 'none'; /* Use flex for cards, block/none for display */
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Initial filter application in case of pre-selected options or for consistent display
+    applyFilters();
+
+    document.getElementById('filterDifficulty').addEventListener('change', applyFilters);
+    document.getElementById('filterRating').addEventListener('change', applyFilters);
+    document.getElementById('filterCertificate').addEventListener('change', applyFilters);
+});
+
+</script>
+{% endblock %}

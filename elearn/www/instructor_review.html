@@ -1,0 +1,63 @@
+{% extends "templates/web.html" %}
+{% block title %}Instructor Review Submissions{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4">📝 Instructor Assignment Review</h1>
+
+  {% for sub in submissions %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header bg-secondary text-white">
+        <strong>{{ sub.assignment_title }}</strong> — {{ sub.student_name }} ({{ sub.student_id }})
+      </div>
+      <div class="card-body">
+        <p><strong>Submitted on:</strong> {{ sub.submission_date }}</p>
+
+        <h5>Questions:</h5>
+        <ul class="list-group mb-3">
+          {% for q in sub.questions %}
+            <li class="list-group-item">
+              <strong>Q:</strong> {{ q.question }}<br>
+              <strong>Answer:</strong> {{ q.answer }}<br>
+              <strong>Marks:</strong> {{ q.marks }}
+            </li>
+          {% endfor %}
+        </ul>
+
+        <div class="mb-3">
+          <label for="feedback-{{ sub.name }}" class="form-label">Instructor Feedback:</label>
+          <textarea class="form-control" id="feedback-{{ sub.name }}" rows="3">{{ sub.feedback }}</textarea>
+        </div>
+
+        <button class="btn btn-success" onclick="submitFeedback('{{ sub.name }}')">✅ Mark as Graded</button>
+      </div>
+    </div>
+  {% else %}
+    <div class="alert alert-info">No pending submissions found.</div>
+  {% endfor %}
+</div>
+
+<script>
+function submitFeedback(submissionId) {
+  const feedback = document.getElementById(`feedback-${submissionId}`).value;
+
+  fetch("/api/method/elearn.api.mark_submission_graded", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Frappe-CSRF-Token": frappe.csrf_token
+    },
+    body: JSON.stringify({ submission_id: submissionId, feedback })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.message === "success") {
+      alert("Marked as graded.");
+      location.reload();
+    } else {
+      alert("Error: " + (data.message || "Unknown error"));
+    }
+  });
+}
+</script>
+{% endblock %}

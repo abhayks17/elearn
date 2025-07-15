@@ -1,0 +1,1010 @@
+{% extends "templates/web.html" %}
+
+{% block title %}Student Analytics Report{% endblock %}
+
+{% block content %}
+<div class="student-report-container">
+  <h1 class="report-header">Student Analytics Report</h1>
+
+  {% if analytics %}
+    {% set grouped_data = {} %}
+    {% for entry in analytics %}
+      {% set _ = grouped_data.setdefault(entry.course, {}).setdefault(entry.student, []).append(entry) %}
+    {% endfor %}
+
+    {% for course, students in grouped_data.items() %}
+      <div class="course-section">
+        <h2 class="course-title toggle-header" onclick="toggleSection(this)">📘 {{ course }} <i class="fas fa-chevron-down toggle-icon"></i></h2>
+        <div class="student-list-container" style="display: none;">
+          {% for student, assignments in students.items() %}
+            <div class="student-section">
+              <h3 class="student-name toggle-header" onclick="toggleSection(this)">👨‍🎓 {{ student }} <i class="fas fa-chevron-down toggle-icon"></i></h3>
+              <div class="assignment-list-container" style="display: none;">
+
+                {% for entry in assignments %}
+                  <div class="assignment-card">
+                    <div class="assignment-header">
+                      <span class="assignment-title">{{ entry.assignment }}</span>
+                      <span class="assignment-grade">{{ entry.grade }} / {{ entry.total_marks }}</span>
+                    </div>
+                    <div class="assignment-meta">
+                      <span class="assignment-date"><i class="far fa-calendar-alt"></i> {{ entry.submission_date }}</span>
+                      <span class="assignment-status">{{ "Submitted" if entry.grade else "Pending" }}</span>
+                    </div>
+                    <div class="assignment-meta">
+                      <span class="assignment-type"><i class="fas fa-tags"></i> Type: {{ entry.question_type }}</span>
+                    </div>
+                    <div class="assignment-feedback">
+                      <strong><i class="far fa-comment-dots"></i> Feedback:</strong> {{ entry.feedback or "No feedback provided" }}
+                    </div>
+
+                    <div class="questions-section">
+                      <h4><i class="fas fa-question-circle"></i> Question Details</h4>
+                      <div class="questions-list">
+                        {% for q in entry.questions %}
+                          <div class="question-item">
+                            <div class="question-text"><strong>Q:</strong> {{ q.question }}</div>
+                            <div class="answer-text"><strong>A:</strong> {{ q.answer }}</div>
+                            <div class="marks-scored"><i class="fas fa-star"></i> Marks: {{ q.marks_scored }}</div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+
+                <div class="performance-analysis">
+                  <h4><i class="fas fa-chart-pie"></i> Performance Analysis</h4>
+                  <div class="analysis-grid">
+                    {% set theory_grades = [] %}
+                    {% set coding_grades = [] %}
+                    {% set total_assignments_count = assignments|length %}
+
+                    {% for entry in assignments %}
+                      {% if entry.grade is not none and entry.total_marks is not none and entry.total_marks > 0 %}
+                        {% if entry.question_type == 'Theory' %}
+                          {% set _ = theory_grades.append(entry.grade / entry.total_marks * 100) %}
+                        {% elif entry.question_type == 'Coding' %}
+                          {% set _ = coding_grades.append(entry.grade / entry.total_marks * 100) %}
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+
+                    {% set avg_theory = (theory_grades|sum / theory_grades|length) if theory_grades|length > 0 else 0 %}
+                    {% set avg_coding = (coding_grades|sum / coding_grades|length) if coding_grades|length > 0 else 0 %}
+                    {% set overall_avg = (theory_grades|sum + coding_grades|sum) / (theory_grades|length + coding_grades|length) if (theory_grades|length + coding_grades|length) > 0 else 0 %}
+
+                    <div class="analysis-card theory-analysis">
+                      <div class="analysis-header">
+                        <i class="fas fa-book-open"></i>
+                        <h5>Theory Performance</h5>
+                      </div>
+                      <div class="analysis-content">
+                        <div class="progress-container">
+                          <div class="progress-bar" style="width: {{ avg_theory }}%;"></div>
+                          <span class="progress-text">{{ avg_theory|round(1) }}%</span>
+                        </div>
+                        <div class="analysis-verdict">
+                          {% if avg_theory >= 70 %}
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Excellent</strong> in theoretical assignments
+                          {% elif avg_theory >= 50 %}
+                            <i class="fas fa-info-circle text-good"></i>
+                            <strong>Good</strong> in theory
+                          {% else %}
+                            <i class="fas fa-exclamation-circle text-warning"></i>
+                            <strong>Needs improvement</strong> in theory
+                          {% endif %}
+                        </div>
+                        <div class="analysis-details">
+                          <span><i class="fas fa-list-alt"></i> {{ theory_grades|length }} theory assignments</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="analysis-card coding-analysis">
+                      <div class="analysis-header">
+                        <i class="fas fa-code"></i>
+                        <h5>Coding Performance</h5>
+                      </div>
+                      <div class="analysis-content">
+                        <div class="progress-container">
+                          <div class="progress-bar" style="width: {{ avg_coding }}%;"></div>
+                          <span class="progress-text">{{ avg_coding|round(1) }}%</span>
+                        </div>
+                        <div class="analysis-verdict">
+                          {% if avg_coding >= 70 %}
+                            <i class="fas fa-check-circle text-success"></i>
+                            <strong>Strong</strong> in coding assignments
+                          {% elif avg_coding >= 50 %}
+                            <i class="fas fa-info-circle text-good"></i>
+                            <strong>Competent</strong> in coding
+                          {% else %}
+                            <i class="fas fa-exclamation-circle text-warning"></i>
+                            <strong>Needs practice</strong> in coding
+                          {% endif %}
+                        </div>
+                        <div class="analysis-details">
+                          <span><i class="fas fa-code-branch"></i> {{ coding_grades|length }} coding assignments</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="analysis-card overall-analysis">
+                      <div class="analysis-header">
+                        <i class="fas fa-chart-line"></i>
+                        <h5>Overall Performance</h5>
+                      </div>
+                      <div class="analysis-content">
+                        <div class="progress-container">
+                          <div class="progress-bar" style="width: {{ overall_avg }}%;"></div>
+                          <span class="progress-text">{{ overall_avg|round(1) }}%</span>
+                        </div>
+                        <div class="analysis-verdict">
+                          {% if overall_avg >= 70 %}
+                            <i class="fas fa-star text-excellent"></i>
+                            <strong>Outstanding</strong> overall performance
+                          {% elif overall_avg >= 50 %}
+                            <i class="fas fa-thumbs-up text-good"></i>
+                            <strong>Good</strong> performance
+                          {% else %}
+                            <i class="fas fa-exclamation-triangle text-poor"></i>
+                            <strong>Needs attention</strong> - below expectations
+                          {% endif %}
+                        </div>
+                        <div class="analysis-details">
+                          <span><i class="fas fa-tasks"></i> {{ total_assignments_count }} assignments completed</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="no-data-message">
+      <i class="fas fa-book-open"></i>
+      <p>No analytics data found.</p>
+      <p>Please add student assignments to view the report.</p>
+    </div>
+  {% endif %}
+</div>
+
+<div id="chart-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-content">
+    <span class="close-button" onclick="closeModal()">&times;</span>
+    <h3 id="chart-title" class="chart-modal-title">Chart</h3>
+    <div class="chart-wrapper">
+      <canvas id="studentChart"></canvas>
+    </div>
+  </div>
+</div>
+
+---
+
+<style>
+  /* Base Styles & Variables */
+:root {
+    --primary-color: #4A90E2; /* A modern, slightly muted blue */
+    --secondary-color: #5C6F8D; /* A deep, professional grey-blue */
+    --accent-color: #8DA2BF; /* Lighter grey-blue for accents */
+    --background-light: #F0F4F8; /* Soft, light background */
+    --card-background: #FFFFFF; /* Crisp white for cards */
+    --border-color: #E2E8F0; /* Subtle border color */
+    --shadow-light: rgba(0, 0, 0, 0.04);
+    --shadow-medium: rgba(0, 0, 0, 0.1);
+
+    /* Status Colors */
+    --status-success: #28A745; /* Green */
+    --status-warning: #FFC107; /* Amber */
+    --status-danger: #DC3545; /* Red */
+    --status-info: #17A2B8; /* Teal */
+
+    /* Analysis Specific Colors */
+    --analysis-bg-theory: #E6F7FF; /* Light blue */
+    --analysis-border-theory: #A8D9FF;
+    --analysis-bg-coding: #E6FFE6; /* Light green */
+    --analysis-border-coding: #A8FFA8;
+    --analysis-bg-overall: #FFF0E6; /* Light orange */
+    --analysis-border-overall: #FFD9A8;
+
+    --progress-bar-bg: var(--primary-color);
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: var(--background-light);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.student-report-container {
+    max-width: 1800px; /* Increased width for more space */
+    margin: 40px auto;
+    padding: 30px;
+    background: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px var(--shadow-light); /* Enhanced shadow */
+}
+
+.report-header {
+    font-size: 2.8em;
+    text-align: center;
+    color: var(--secondary-color);
+    font-weight: 700; /* Bolder */
+    margin-bottom: 40px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border-color);
+    letter-spacing: -0.5px;
+}
+
+.course-section {
+    background-color: #FDFDFD; /* Near white for sections */
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 40px;
+    padding: 25px;
+    box-shadow: 0 4px 15px var(--shadow-light);
+    transition: all 0.3s ease-in-out;
+}
+
+.course-section:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.course-title {
+    font-size: 2.2em;
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.course-title .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.course-title.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.student-list-container {
+    padding-top: 15px;
+}
+
+.student-section {
+    background-color: var(--background-light);
+    border: 1px solid #EBF1F7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease-in-out;
+}
+
+.student-section:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+}
+
+.student-name {
+    font-size: 1.8em;
+    color: var(--secondary-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #DCE3EB;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.student-name .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.student-name.active .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.assignment-list-container {
+    padding-top: 15px;
+    display: grid; /* Use grid for assignments */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive columns */
+    gap: 20px;
+}
+
+.assignment-card {
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s ease-in-out;
+}
+
+.assignment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.assignment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px dotted var(--border-color);
+}
+
+.assignment-title {
+    font-weight: 600;
+    font-size: 1.15em;
+    color: var(--primary-color);
+}
+
+.assignment-grade {
+    font-weight: 700;
+    font-size: 1.2em;
+    color: var(--secondary-color);
+}
+
+.assignment-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: var(--accent-color);
+}
+
+.assignment-meta i {
+    margin-right: 5px;
+}
+
+.assignment-status {
+    font-weight: 500;
+}
+
+.assignment-status.Submitted {
+    color: var(--status-success);
+}
+
+.assignment-status.Pending {
+    color: var(--status-warning);
+}
+
+.assignment-feedback {
+    background-color: #F8FCFF;
+    border-left: 4px solid var(--primary-color);
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: #444;
+}
+
+.assignment-feedback strong {
+    color: var(--primary-color);
+}
+
+.questions-section {
+    margin-top: 15px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+
+.questions-section h4 {
+    color: var(--secondary-color);
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.questions-section h4 i {
+    margin-right: 8px;
+    color: var(--accent-color);
+}
+
+.question-item {
+    background-color: #FAFAFA;
+    border: 1px solid #ECEFF4;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+}
+
+.question-text {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.answer-text {
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.marks-scored {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.marks-scored i {
+    color: #FFD700; /* Gold star */
+    margin-right: 5px;
+}
+
+/* Performance Analysis */
+.performance-analysis {
+    margin-top: 30px;
+    background-color: #FBFBFB;
+    border: 1px solid #E5EBF2;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.performance-analysis h4 {
+    color: var(--secondary-color);
+    font-size: 1.4em;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.performance-analysis h4 i {
+    color: var(--primary-color);
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.analysis-card {
+    background-color: var(--card-background);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 15px var(--shadow-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.analysis-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 20px var(--shadow-medium);
+}
+
+.analysis-card.theory-analysis {
+    border: 1px solid var(--analysis-border-theory);
+    background-color: var(--analysis-bg-theory);
+}
+.analysis-card.coding-analysis {
+    border: 1px solid var(--analysis-border-coding);
+    background-color: var(--analysis-bg-coding);
+}
+.analysis-card.overall-analysis {
+    border: 1px solid var(--analysis-border-overall);
+    background-color: var(--analysis-bg-overall);
+}
+
+.analysis-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: var(--secondary-color);
+}
+
+.analysis-header i {
+    font-size: 1.6em;
+    margin-right: 10px;
+    color: var(--primary-color);
+}
+
+.analysis-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    height: 18px;
+    overflow: hidden;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--progress-bar-bg);
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+    line-height: 18px;
+    font-size: 0.8em;
+    transition: width 0.5s ease-out;
+}
+
+.progress-text {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    font-weight: 600;
+    font-size: 0.9em;
+    text-shadow: 0 0 2px rgba(255,255,255,0.7); /* For readability on dark bars */
+}
+
+
+.analysis-verdict {
+    font-size: 1.1em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.analysis-verdict i {
+    margin-right: 5px;
+    font-size: 1.2em;
+}
+
+.text-success { color: var(--status-success); }
+.text-good { color: var(--status-info); } /* Using info color for "good" */
+.text-warning { color: var(--status-warning); }
+.text-excellent { color: #FFD700; } /* Gold for excellent */
+.text-poor { color: var(--status-danger); }
+
+.analysis-details {
+    font-size: 0.9em;
+    color: var(--accent-color);
+}
+
+.analysis-details i {
+    margin-right: 5px;
+}
+
+.view-chart-btn {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    margin-top: 25px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.view-chart-btn:hover {
+    background-color: #3A7BBF;
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px var(--shadow-light);
+}
+
+.no-data-message {
+    text-align: center;
+    padding: 50px 20px;
+    background-color: #EBF3FA;
+    border-radius: 10px;
+    color: var(--accent-color);
+    font-size: 1.2em;
+    margin-top: 50px;
+    border: 1px dashed var(--border-color);
+}
+
+.no-data-message i {
+    font-size: 3em;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.no-data-message p {
+    margin: 10px 0;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px var(--shadow-medium);
+    width: 90%;
+    max-width: 800px;
+    position: relative;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 2em;
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover {
+    color: var(--secondary-color);
+}
+
+.chart-modal-title {
+    font-size: 2em;
+    color: var(--secondary-color);
+    margin-bottom: 25px;
+    text-align: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 400px; /* Fixed height for chart area */
+    width: 100%;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .student-report-container {
+        margin: 20px auto;
+        padding: 20px;
+    }
+
+    .report-header {
+        font-size: 2.2em;
+        margin-bottom: 30px;
+    }
+
+    .course-title {
+        font-size: 1.8em;
+    }
+
+    .student-name {
+        font-size: 1.5em;
+    }
+
+    .assignment-list-container {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+    }
+
+    .analysis-grid {
+        grid-template-columns: 1fr; /* Stack analysis cards on smaller screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .student-report-container {
+        padding: 15px;
+        margin: 15px;
+    }
+
+    .report-header {
+        font-size: 2em;
+        margin-bottom: 25px;
+    }
+
+    .course-title {
+        font-size: 1.6em;
+    }
+
+    .student-name {
+        font-size: 1.3em;
+    }
+
+    .assignment-card {
+        padding: 15px;
+    }
+
+    .assignment-title {
+        font-size: 1.1em;
+    }
+
+    .assignment-grade {
+        font-size: 1.1em;
+    }
+
+    .assignment-meta, .assignment-feedback, .question-item {
+        font-size: 0.85em;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+
+    .chart-wrapper {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .report-header {
+        font-size: 1.8em;
+    }
+
+    .course-title {
+        font-size: 1.4em;
+    }
+
+    .student-name {
+        font-size: 1.2em;
+    }
+
+    .assignment-list-container {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+
+    .view-chart-btn {
+        font-size: 0.9em;
+        padding: 8px 15px;
+    }
+
+    .close-button {
+        font-size: 1.8em;
+        top: 10px;
+        right: 15px;
+    }
+
+    .chart-modal-title {
+        font-size: 1.6em;
+    }
+    .analysis-header h5 {
+      font-size: 0.9em;
+    }
+    .analysis-header i {
+      font-size: 1.4em;
+    }
+    .analysis-verdict {
+      font-size: 1em;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Toggle sections
+  document.querySelectorAll('.toggle-header').forEach(header => {
+    header.addEventListener('click', function() {
+      const content = this.nextElementSibling;
+      // Toggle display for the section content
+      const isCurrentlyDisplayed = content.style.display === "block";
+      content.style.display = isCurrentlyDisplayed ? "none" : "block";
+
+      // Toggle icon rotation
+      const icon = this.querySelector('.toggle-icon');
+      if (icon) {
+        icon.classList.toggle('fa-chevron-up');
+        icon.classList.toggle('fa-chevron-down');
+      }
+      this.classList.toggle('active'); // Add/remove active class for header itself
+    });
+  });
+
+  // Chart functionality
+  let myChart = null;
+
+  function showChart(course, student) {
+    // Show modal
+    const modal = document.getElementById('chart-modal');
+    modal.style.display = 'flex';
+    setTimeout(() => {
+      modal.classList.add('active');
+    }, 10);
+
+    // Set title
+    document.getElementById('chart-title').textContent = `${student}'s Performance in ${course}`;
+
+    // Create chart
+    const ctx = document.getElementById('studentChart').getContext('2d');
+
+    // Destroy previous chart if exists
+    if (myChart) {
+      myChart.destroy();
+    }
+
+    // Sample data - in a real app, you would fetch this from your backend
+    // This example uses static data. To make it dynamic, you'd need to pass
+    // the actual assignment data for the student/course to this function.
+    const assignments = ['Assignment 1', 'Assignment 2', 'Assignment 3', 'Midterm', 'Final Project'];
+    const studentScores = [85, 78, 92, 88, 95];
+    const classAverages = [72, 75, 80, 82, 78];
+
+    myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: assignments,
+        datasets: [
+          {
+            label: 'Your Score',
+            data: studentScores,
+            backgroundColor: 'rgba(0, 123, 255, 0.8)', /* primary-color */
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 1,
+            borderRadius: 5, /* Rounded corners for bars */
+          },
+          {
+            label: 'Class Average',
+            data: classAverages,
+            backgroundColor: 'rgba(220, 53, 69, 0.8)', /* status-danger for average */
+            borderColor: 'rgba(220, 53, 69, 1)',
+            borderWidth: 2,
+            type: 'line',
+            pointBackgroundColor: 'rgba(220, 53, 69, 1)',
+            pointBorderColor: '#fff',
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            tension: 0.3, /* Smooth line */
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            title: {
+              display: true,
+              text: 'Score (%)',
+              font: {
+                size: 15,
+                weight: 'bold',
+                family: 'Roboto, sans-serif'
+              },
+              color: '#495057'
+            },
+            grid: {
+              color: 'rgba(0, 0, 0, 0.08)',
+              drawBorder: false,
+            },
+            ticks: {
+              font: {
+                family: 'Roboto, sans-serif'
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            title: {
+              display: true,
+              text: 'Assignments',
+              font: {
+                size: 15,
+                weight: 'bold',
+                family: 'Roboto, sans-serif'
+              },
+              color: '#495057'
+            },
+            ticks: {
+              font: {
+                family: 'Roboto, sans-serif'
+              }
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              font: {
+                size: 14,
+                family: 'Roboto, sans-serif'
+              },
+              usePointStyle: true,
+              pointStyle: 'circle',
+              padding: 20
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(52, 58, 64, 0.9)', /* secondary-color with opacity */
+            titleFont: {
+              size: 16,
+              family: 'Roboto, sans-serif',
+              weight: 'bold'
+            },
+            bodyFont: {
+              size: 14,
+              family: 'Roboto, sans-serif'
+            },
+            padding: 12,
+            usePointStyle: true,
+            boxPadding: 8,
+            displayColors: true,
+          }
+        },
+        animation: {
+          duration: 1200, /* Slightly longer animation */
+          easing: 'easeOutExpo' /* Smoother easing */
+        }
+      }
+    });
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('chart-modal');
+    modal.classList.remove('active');
+    // Allow time for fade-out animation before hiding completely
+    setTimeout(() => {
+      modal.style.display = 'none';
+      if (myChart) {
+        myChart.destroy(); // Destroy chart when modal is closed
+      }
+    }, 300);
+  }
+
+  // Close modal when clicking outside content
+  document.getElementById('chart-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeModal();
+    }
+  });
+</script>
+{% endblock %}

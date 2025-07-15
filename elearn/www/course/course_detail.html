@@ -1,0 +1,812 @@
+{% extends "templates/web.html" %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<style>
+/* Global Styling & Typography */
+body {
+    font-family: 'Inter', sans-serif; /* Modern sans-serif font */
+    color: #333;
+    background-color: #f8f9fa; /* Consistent light background */
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Main Container */
+.course-detail.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+}
+
+h1, h3, h4, h5 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+h1 {
+    font-size: 3.2em;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #007bff;
+    font-weight: 700;
+}
+
+.course-detail > p {
+    font-size: 1.15em;
+    color: #555;
+    margin-bottom: 40px;
+    /* Remove the 'text-align: center;' line */
+    max-width: 950px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+h3 {
+    font-size: 2.2em;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 12px;
+    margin-top: 50px;
+    text-align: center;
+    position: relative;
+    padding-left: 0;
+}
+
+h3::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background-color: #007bff;
+    margin: 10px auto 0;
+    border-radius: 2px;
+}
+
+/* Lesson & Assignment Section - Accordion Base Styles */
+.accordion-grid { /* Renamed for general use, applies to both lessons and assignments */
+    display: block;
+    list-style: none;
+    padding: 0;
+    margin-top: 30px;
+}
+
+.accordion-card { /* General card style for both accordions */
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.accordion-card-header { /* General header for accordion items */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    cursor: pointer;
+    border-bottom: 1px solid #d0e8ff;
+    transition: background-color 0.2s ease;
+}
+
+/* Specific header colors */
+.lessons-grid .accordion-card-header {
+    background-color: #eaf6ff; /* Light blue for lesson headers */
+}
+.lessons-grid .accordion-card-header:hover {
+    background-color: #dbeaff; /* Slightly darker on hover */
+}
+
+.assignments-grid .accordion-card-header {
+    background-color: #e6ffe6; /* Light green for assignment headers */
+    border-bottom: 1px solid #c3e6cb;
+}
+.assignments-grid .accordion-card-header:hover {
+    background-color: #d0f0d0; /* Slightly darker on hover */
+}
+
+
+.accordion-card-header h4 {
+    margin: 0;
+    font-size: 1.6em;
+}
+
+/* Specific header text colors */
+.lessons-grid .accordion-card-header h4 {
+    color: #007bff;
+}
+.assignments-grid .accordion-card-header h4 {
+    color: #28a745;
+}
+
+
+.accordion-icon {
+    font-size: 1.2em;
+    color: #007bff; /* Default icon color */
+    transition: transform 0.3s ease;
+}
+
+/* Specific icon colors */
+.assignments-grid .accordion-icon {
+    color: #28a745;
+}
+
+
+.accordion-card.active .accordion-icon {
+    transform: rotate(180deg);
+}
+
+.accordion-card-content { /* General content for accordion items */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out, opacity 0.5s ease-out, padding 0.5s ease-out;
+    padding: 0 25px;
+}
+
+.accordion-card.active .accordion-card-content {
+    max-height: 10000px; /* Sufficiently large value for content to expand */
+    opacity: 1;
+    padding: 25px;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Specific styling for lesson content */
+.lessons-grid .accordion-card-content div {
+    font-size: 1em;
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.lessons-grid .accordion-card-content iframe {
+    width: 100%;
+    height: 400px;
+    border-radius: 8px;
+    margin-top: 15px;
+    background-color: #000;
+    border: none;
+}
+
+
+/* Assignments Section - Specific Changes */
+.assignments {
+    margin-top: 50px;
+}
+
+.assignments-grid { /* Applies accordion-grid styles */
+    list-style: none;
+    padding: 0;
+    margin-top: 30px;
+}
+
+/* No longer need .assignment-card specific styles, as .accordion-card now handles it */
+/* .assignment-card { ... } (Removed) */
+
+.assignment-detail-info p { /* For Due Date, Weightage inside the expanded section */
+    color: #555;
+    font-size: 1em;
+    margin-bottom: 15px;
+}
+
+.submission-status {
+    padding: 20px;
+    border-radius: 8px;
+    margin-top: 25px;
+    font-size: 1em;
+    border: 1px solid #c3e6cb;
+    background-color: #d4edda;
+    color: #155724;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.submission-status p {
+    margin: 8px 0;
+    line-height: 1.5;
+}
+
+.submission-status strong {
+    font-weight: 700;
+    color: #11421c;
+}
+
+.instructor-submission-card {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.instructor-submission-card h5 {
+    color: #0056b3;
+    font-size: 1.3em;
+    margin-bottom: 10px;
+    border-bottom: 1px dotted #ccc;
+    padding-bottom: 5px;
+}
+
+.instructor-submission-card p {
+    margin: 5px 0;
+    font-size: 0.95em;
+    color: #444;
+}
+
+.instructor-submission-card a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.instructor-submission-card a:hover {
+    text-decoration: underline;
+}
+
+.grade-feedback-form {
+    background-color: #f0f8ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border: 1px solid #dbeaff;
+}
+
+.grade-feedback-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.grade-feedback-form input[type="number"],
+.grade-feedback-form textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #cceeff;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.grade-feedback-form button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.2s ease;
+}
+
+.grade-feedback-form button:hover {
+    background-color: #0056b3;
+}
+
+/* Forms (Create Assignment & Submit Assignment) */
+.create-assignment, .submit-assignment-form { /* Renamed .submit-assignment to .submit-assignment-form to avoid conflict with the accordion class */
+    margin-top: 50px;
+    padding: 35px;
+    background-color: #f0f3f6;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.create-assignment h3, .submit-assignment-form h5 {
+    margin-bottom: 25px;
+    color: #2c3e50;
+    font-size: 2em;
+    text-align: center;
+    font-weight: 700;
+}
+
+.submit-assignment-form h5 {
+    font-size: 1.6em;
+    text-align: left;
+    color: #6c757d;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.create-assignment input,
+.submit-assignment-form input[type="text"],
+.submit-assignment-form textarea,
+.submit-assignment-form input[type="file"],
+.edit-assignment-form input[type="text"],
+.edit-assignment-form input[type="date"],
+.edit-assignment-form input[type="number"] {
+    width: 100%;
+    padding: 14px;
+    margin: 12px 0;
+    font-size: 1em;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.create-assignment input[type="date"],
+.edit-assignment-form input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #fff;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="%236c757d"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 20px;
+    padding-right: 40px;
+    cursor: pointer;
+}
+
+.create-assignment input:focus,
+.submit-assignment-form input:focus,
+.submit-assignment-form textarea:focus,
+.edit-assignment-form input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+.submit-assignment-form textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.create-assignment button,
+.submit-assignment-form button,
+.edit-assignment-form button {
+    display: block;
+    width: 100%;
+    padding: 15px 20px;
+    margin-top: 25px;
+    font-size: 1.15em;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+}
+
+.create-assignment button:hover,
+.submit-assignment-form button:hover,
+.edit-assignment-form button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* Edit form specific styles */
+.edit-assignment-form {
+    padding: 25px;
+    background-color: #eaf6ff; /* Lighter blue for edit forms */
+    border-radius: 8px;
+    margin-top: 20px;
+    border: 1px solid #d0e8ff;
+}
+
+.edit-assignment-form h5 {
+    font-size: 1.4em;
+    color: #007bff;
+    text-align: left;
+    border-bottom: 1px solid #a9d9ff;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .course-detail.container {
+        padding: 25px;
+    }
+    h1 {
+        font-size: 2.8em;
+    }
+    h3 {
+        font-size: 2em;
+    }
+    .lessons-grid .accordion-card-content iframe { /* Specific iframe rule */
+        height: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .course-detail.container {
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 10px;
+    }
+    h1 {
+        font-size: 2.2em;
+        margin-bottom: 15px;
+    }
+    .course-detail > p {
+        font-size: 1em;
+        margin-bottom: 30px;
+    }
+    h3 {
+        font-size: 1.8em;
+        margin-top: 40px;
+        padding-bottom: 8px;
+    }
+    .accordion-card-header h4 {
+        font-size: 1.4em;
+    }
+    .lessons-grid .accordion-card-content iframe { /* Specific iframe rule */
+        height: 250px;
+    }
+    /* Removed assignment-card h4 as it's now handled by accordion-card-header h4 */
+    .submission-status {
+        padding: 15px;
+    }
+    .create-assignment, .submit-assignment-form {
+        padding: 25px;
+        margin-top: 40px;
+    }
+    .create-assignment h3, .submit-assignment-form h5 {
+        font-size: 1.6em;
+        margin-bottom: 20px;
+    }
+    .submit-assignment-form h5 {
+        font-size: 1.3em;
+    }
+    .create-assignment button, .submit-assignment-form button {
+        padding: 12px 15px;
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    .course-detail.container {
+        margin: 15px auto;
+        padding: 15px;
+        border-radius: 8px;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+    .course-detail > p {
+        font-size: 0.95em;
+        margin-bottom: 25px;
+    }
+    h3 {
+        font-size: 1.5em;
+        margin-top: 30px;
+        padding-bottom: 6px;
+    }
+    .accordion-card-header h4 {
+        font-size: 1.2em;
+    }
+    .lessons-grid .accordion-card-content iframe { /* Specific iframe rule */
+        height: 200px;
+    }
+    .accordion-card { /* applies to both */
+        padding: 0; /* Remove padding from card itself, it's now on header/content */
+        margin-bottom: 20px;
+    }
+    /* Removed assignment-card h4 */
+    .submission-status {
+        padding: 12px;
+    }
+    .create-assignment, .submit-assignment-form {
+        padding: 20px;
+        margin-top: 30px;
+    }
+    .create-assignment h3, .submit-assignment-form h5 {
+        font-size: 1.4em;
+    }
+    .submit-assignment-form h5 {
+        font-size: 1.1em;
+    }
+    .create-assignment input,
+    .submit-assignment-form input[type="text"],
+    .submit-assignment-form textarea,
+    .submit-assignment-form input[type="file"] {
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 6px;
+    }
+}
+
+/* Utility for icons */
+.icon {
+    margin-right: 10px;
+    color: #007bff; /* Default for general icons */
+}
+/* Specific icon colors */
+.lessons-grid .icon {
+    color: #007bff;
+}
+.assignments .icon {
+    color: #28a745;
+}
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+function getCSRFToken() {
+    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+    return (typeof frappe !== 'undefined' && frappe.csrf_token) || (tokenMeta && tokenMeta.content) || '';
+}
+
+function submitAssignment(assignmentName) {
+    const text = document.getElementById(`submission_text_${assignmentName}`).value;
+    const fileInput = document.getElementById(`submission_file_${assignmentName}`);
+    const csrfToken = getCSRFToken();
+
+    const formData = new FormData();
+    formData.append("assignment", assignmentName);
+    formData.append("text_submission", text);
+    if (fileInput.files.length > 0) {
+        formData.append("file", fileInput.files[0]);
+    }
+
+    fetch('/api/method/elearn.api.assignment_submission.submit_assignment', {
+        method: 'POST',
+        headers: {
+            'X-Frappe-CSRF-Token': csrfToken
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) {
+            alert(data.message);
+        } else if (data.error) {
+            alert("Error: " + data.error);
+        } else {
+            alert("Assignment submitted successfully.");
+        }
+        location.reload();
+    })
+    .catch(err => {
+        alert("Error submitting assignment: " + err.message);
+        console.error("Submission error:", err);
+    });
+
+    return false; // Prevent default form submission
+}
+
+function gradeSubmission(submissionName, assignmentName) {
+    const grade = document.getElementById(`grade_${submissionName}`).value;
+    const feedback = document.getElementById(`feedback_${submissionName}`).value;
+    const csrfToken = getCSRFToken();
+
+    fetch('/api/method/elearn.api.assignment_submission.grade_submission', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Frappe-CSRF-Token': csrfToken
+        },
+        body: JSON.stringify({
+            submission_name: submissionName,
+            grade: grade,
+            feedback: feedback
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message) {
+            alert(data.message);
+        } else if (data.error) {
+            alert("Error: " + data.error);
+        } else {
+            alert("Submission graded successfully.");
+        }
+        location.reload();
+    })
+    .catch(err => {
+        alert("Error grading submission: " + err.message);
+        console.error("Grading error:", err);
+    });
+
+    return false;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.accordion-card-header').forEach(header => {
+        header.addEventListener('click', function() {
+            const card = this.closest('.accordion-card');
+            const grid = this.closest('.accordion-grid');
+
+            grid.querySelectorAll('.accordion-card.active').forEach(openCard => {
+                if (openCard !== card) openCard.classList.remove('active');
+            });
+
+            card.classList.toggle('active');
+        });
+    });
+
+    // Pre-fill date values in edit forms
+    document.querySelectorAll('[data-assignment-due-date]').forEach(input => {
+        const val = input.getAttribute('data-assignment-due-date');
+        if (val && !input.value) input.value = val.split(' ')[0];
+    });
+});
+</script>
+
+{% endblock %}
+
+{% block content %}
+<div class="course-detail container">
+    <h1>{{ course.title }}</h1>
+    <p>{{ course.course_description }}</p>
+
+    <h3><i class="fas fa-flask icon"></i> Lessons {% if not is_enrolled and not is_instructor %}(Trial Only){% endif %}</h3>
+    {% if lessons %}
+    <ul class="lessons-grid accordion-grid">
+    {% for lesson in lessons %}
+    <li class="lesson-card accordion-card">
+        <div class="lesson-card-header accordion-card-header">
+            <h4>{{ lesson.title }}</h4>
+            <i class="fas fa-chevron-down accordion-icon"></i>
+        </div>
+        <div class="lesson-card-content accordion-card-content">
+            <div>{{ lesson.content or "No content available." }}</div>
+       {% if lesson.show_video %}
+  {% if lesson.embed_url %}
+    <iframe
+        width="560"
+        height="315"
+        src="{{ lesson.embed_url }}"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+    </iframe>
+  {% elif lesson.local_video %}
+    <video
+    width="560"
+    height="315"
+    controls
+    controlsList="nodownload"
+    oncontextmenu="return false"
+    preload="metadata">
+  <source src="{{ lesson.local_video }}" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+  {% else %}
+    <p>No video available.</p>
+  {% endif %}
+{% else %}
+  <p style="color: #888;">Video expired and is no longer available.</p>
+{% endif %}
+
+
+
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p style="text-align: center; color: #6c757d; font-style: italic; padding: 20px;">No lessons available for this course yet.</p>
+{% endif %}
+
+
+    {% if is_enrolled or is_instructor %} {# Assignments section visible for enrolled students AND instructors #}
+    <div class="assignments">
+        <h3><i class="fas fa-book-open icon"></i> Assignments</h3>
+        {% if assignments %}
+        <ul class="assignments-grid accordion-grid">
+            {% for assignment in assignments %}
+            <li class="assignment-card accordion-card">
+                <div class="assignment-card-header accordion-card-header">
+                    <h4>{{ assignment.title }}</h4>
+                    <i class="fas fa-chevron-down accordion-icon"></i>
+                </div>
+                <div class="assignment-card-content accordion-card-content">
+                    <div class="assignment-detail-info">
+                        <p>Due: {{ assignment.due_date }} | Weightage: {{ assignment.weightage }}%</p>
+                    </div>
+
+                    {% if is_instructor %}
+                        <div class="edit-assignment-form">
+                            <h5>Edit Assignment Details</h5>
+                            <form onsubmit="return updateAssignment('{{ assignment.name }}');">
+                                <label for="edit_assignment_title_{{ assignment.name }}">Title:</label>
+                                <input type="text" id="edit_assignment_title_{{ assignment.name }}" value="{{ assignment.title }}" required>
+                                
+                                <label for="edit_assignment_due_date_{{ assignment.name }}">Due Date:</label>
+                                <input type="date" id="edit_assignment_due_date_{{ assignment.name }}" value="{{ assignment.due_date }}" data-assignment-due-date="{{ assignment.due_date }}" required>
+                                
+                                <label for="edit_assignment_weightage_{{ assignment.name }}">Weightage (%):</label>
+                                <input type="number" id="edit_assignment_weightage_{{ assignment.name }}" value="{{ assignment.weightage }}" step="0.1" required>
+                                <button type="submit">Update Assignment</button>
+                            </form>
+                        </div>
+
+                        <h4>Submissions for This Assignment:</h4>
+                        {% set current_assignment_submissions = all_submissions_by_assignment.get(assignment.name, []) %}
+                        {% if current_assignment_submissions %}
+                            {% for submission in current_assignment_submissions %}
+                                <div class="instructor-submission-card">
+                                    <h5>Submission by {{ submission.student }}</h5>
+                                    <p><strong>Submission ID:</strong> {{ submission.name }}</p>
+                                    <p><strong>Status:</strong> <span style="color: {% if submission.status == 'Graded' %}#28a745{% elif submission.status == 'Submitted' %}#ffc107{% else %}#dc3545{% endif %};">{{ submission.status }}</span></p>
+                                    {% if submission.text_submission %}
+                                        <p><strong>Text Submission:</strong> {{ submission.text_submission }}</p>
+                                    {% endif %}
+                                    {% if submission.file_url %}
+                                        <p><strong>File:</strong> <a href="{{ submission.file_url }}" target="_blank"><i class="fas fa-file-download"></i> Download File</a></p>
+                                    {% endif %}
+
+                                    <div class="grade-feedback-form">
+                                        <h5>Grade and Feedback</h5>
+                                        <form onsubmit="return gradeSubmission('{{ submission.name }}', '{{ assignment.name }}');">
+                                            <label for="grade_{{ submission.name }}">Grade (%):</label>
+                                            <input type="number" id="grade_{{ submission.name }}" value="{{ submission.grade or 0 }}" min="0" max="100">
+                                            <label for="feedback_{{ submission.name }}">Feedback:</label>
+                                            <textarea id="feedback_{{ submission.name }}" placeholder="Enter feedback here">{{ submission.feedback or "" }}</textarea>
+                                            <button type="submit">Save Grade/Feedback</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p style="text-align: center; color: #6c757d; font-style: italic; padding: 10px;">No submissions yet for this assignment.</p>
+                        {% endif %}
+
+                    {% else %} {# Student View for Assignments #}
+                        {% set submission = submissions.get(assignment.name) %}
+                        {% if submission %}
+                            <div class="submission-status">
+                                <p><strong>Status:</strong> <span style="color: {% if submission.status == 'Graded' %}#28a745{% elif submission.status == 'Submitted' %}#ffc107{% else %}#dc3545{% endif %};">{{ submission.status }}</span></p>
+                                {% if submission.status == "Graded" %}
+                                    <p><strong>Grade:</strong> <span style="font-size: 1.1em; color: #007bff;">{{ submission.grade }}%</span></p>
+                                    <p><strong>Feedback:</strong> {{ submission.feedback or "No feedback provided." }}</p>
+                                {% endif %}
+                                {% if submission.text_submission %}
+                                    <p><strong>Your Submission:</strong> {{ submission.text_submission }}</p>
+                                {% endif %}
+                                {% if submission.file_url %}
+                                    <p><strong>Your File:</strong> <a href="{{ submission.file_url }}" target="_blank"><i class="fas fa-file-alt"></i> View Submitted File</a></p>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="submit-assignment-form">
+                                <h5>Submit your assignment</h5>
+                                <form onsubmit="return submitAssignment('{{ assignment.name }}');">
+                                    <textarea id="submission_text_{{ assignment.name }}" placeholder="Type your answer here (optional)"></textarea>
+                                    <input type="file" id="submission_file_{{ assignment.name }}" accept=".pdf,.doc,.docx,.txt,.zip,.jpg,.jpeg,.png">
+                                    <button type="submit">Submit Assignment</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p style="text-align: center; color: #6c757d; font-style: italic; padding: 20px;">No assignments posted yet for this course.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if is_instructor %}
+    <div class="create-assignment">
+        <h3><i class="fas fa-plus-circle icon"></i> Add New Assignment</h3>
+        <form onsubmit="return createAssignment();">
+            <input type="text" id="assignment_title" placeholder="Assignment Title" required>
+            <input type="date" id="assignment_due_date" required>
+            <input type="number" id="assignment_weightage" placeholder="Weightage (%)" value="0" step="0.1" required>
+            <button type="submit">Create Assignment</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

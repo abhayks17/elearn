@@ -1,0 +1,269 @@
+{% extends "templates/web.html" %}
+
+{% block head %}
+{{ super() }}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* Global Styling & Typography */
+    body {
+        font-family: 'Inter', sans-serif; /* Modern sans-serif font */
+        color: #333;
+        background-color: #f8f9fa; /* Light background for the whole page */
+        line-height: 1.6;
+    }
+
+    .container.page-content { /* Target the Frappe page content container */
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px; /* Adjust padding for better flow within Frappe structure */
+    }
+
+    /* Hero Section */
+    .hero {
+        background: linear-gradient(to right, #007bff, #0056b3); /* Deeper blue gradient */
+        color: white;
+        padding: 80px 30px; /* More vertical padding */
+        text-align: center;
+        border-radius: 12px;
+        margin-bottom: 50px; /* More space below hero */
+        box-shadow: 0 10px 25px rgba(0, 123, 255, 0.2); /* Subtle shadow for depth */
+    }
+
+    .hero h1 {
+        font-size: 3.2em; /* Larger heading */
+        margin-bottom: 15px;
+        font-weight: 700; /* Bolder */
+        color: #fff; /* Ensure white color for heading */
+    }
+
+    .hero p {
+        font-size: 1.2em;
+        margin-bottom: 30px;
+        opacity: 0.9; /* Slightly transparent for subtle effect */
+    }
+
+    .btn-courses {
+        display: inline-block;
+        margin-top: 20px;
+        background-color: #ffffff; /* White background */
+        color: #007bff; /* Primary blue text */
+        padding: 12px 28px; /* More padding */
+        border-radius: 8px; /* Slightly more rounded */
+        text-decoration: none;
+        font-weight: 600;
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow for button */
+    }
+
+    .btn-courses:hover {
+        background-color: #e2f0ff; /* Light blue on hover */
+        transform: translateY(-2px); /* Lift effect */
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        color: #007bff; /* Ensure color stays */
+    }
+
+    /* Section Heading */
+    h2 {
+        font-size: 2.2em;
+        color: #2c3e50;
+        margin-bottom: 30px;
+        text-align: center; /* Center align for better balance */
+        position: relative; /* For potential underline effect */
+    }
+
+    h2::after { /* Simple underline effect */
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: #007bff;
+        margin: 10px auto 0;
+        border-radius: 2px;
+    }
+
+    /* Course Grid & Cards */
+    .course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Slightly wider min width */
+        gap: 30px; /* More space between cards */
+        padding-bottom: 50px; /* Space at bottom of grid */
+    }
+
+    .course-card {
+        background: #fff;
+        border: 1px solid #e0e0e0; /* Lighter border */
+        border-radius: 10px; /* More rounded corners */
+        padding: 25px; /* More padding inside card */
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Stronger, softer shadow */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        display: flex; /* Use flex for internal layout */
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .course-card:hover {
+        transform: translateY(-5px); /* Lift effect */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12); /* Enhanced shadow on hover */
+    }
+
+    .course-title {
+        font-size: 1.6em; /* Larger title */
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #007bff; /* Primary color for titles */
+    }
+
+    .course-card > div:not(.course-title) { /* Style for other text in card */
+        font-size: 1em;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .progress-bar {
+        height: 10px; /* Thicker progress bar */
+        background-color: #e9ecef; /* Lighter background for empty part */
+        border-radius: 5px;
+        margin-top: 15px; /* More space above progress bar */
+        overflow: hidden;
+        position: relative; /* For label inside */
+    }
+
+    .progress-fill {
+        height: 100%;
+        background-color: #28a745; /* Green for progress */
+        border-radius: 5px; /* Match parent radius */
+        transition: width 0.5s ease-out; /* Smooth progress animation */
+        display: flex;
+        align-items: center;
+        justify-content: flex-end; /* Align text to end */
+        padding-right: 8px; /* Space for text */
+        color: white;
+        font-size: 0.85em;
+        font-weight: 600;
+        white-space: nowrap; /* Prevent text wrap */
+    }
+
+    .no-enrollments-message {
+        text-align: center;
+        font-size: 1.2em;
+        color: #6c757d;
+        padding: 50px 20px;
+        background-color: #f0f3f6;
+        border-radius: 10px;
+        margin-top: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+        .hero {
+            padding: 50px 20px;
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 2.5em;
+        }
+        .hero p {
+            font-size: 1em;
+        }
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 25px;
+        }
+        .course-card {
+            padding: 20px;
+        }
+        .course-title {
+            font-size: 1.4em;
+        }
+        .course-grid {
+            gap: 20px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero {
+            padding: 40px 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .hero h1 {
+            font-size: 2em;
+        }
+        .hero p {
+            font-size: 0.9em;
+        }
+        .btn-courses {
+            padding: 10px 20px;
+            font-size: 0.9em;
+        }
+        h2 {
+            font-size: 1.6em;
+            margin-bottom: 20px;
+        }
+        .course-grid {
+            grid-template-columns: 1fr; /* Stack cards on very small screens */
+            gap: 15px;
+        }
+        .course-card {
+            padding: 18px;
+        }
+        .course-title {
+            font-size: 1.2em;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="container page-content"> <div class="hero">
+        {% set user = frappe.get_doc("User", frappe.session.user) %}
+<h1>🎓 Welcome, {{ user.full_name }}!</h1>
+
+        <p>Your personalized dashboard to track your learning journey and progress.</p>
+        <a href="/courses" class="btn-courses">Browse All Courses <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></a> </div>
+
+    <h2>Your Enrolled Courses</h2>
+
+    {% set enrollments = frappe.get_all("Enrollment", filters={"student": frappe.session.user}, fields=["course", "progress"], limit=6) %}
+
+    {% if enrollments %}
+    <div class="course-grid">
+        {% for e in enrollments %}
+            <div class="course-card">
+                <div class="course-title">{{ e.course }}</div>
+                <div>Last Progress: {{ e.progress or 0 }}%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ e.progress or 0 }}%;">
+                        {% if (e.progress or 0) > 15 %}{{ e.progress or 0 }}%{% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        <div id="instructor-links" style="display: none; margin-top: 30px;">
+  <a href="/student_report" class="btn-courses" style="margin-right: 15px;">📊 Student Report</a>
+  <a href="/assignment_review" class="btn-courses">📝 Assignment Review</a>
+</div>
+
+<script>
+  frappe.call('frappe.client.get', {
+    doctype: 'User',
+    name: frappe.session.user
+  }).then(r => {
+    const roles = r.message.roles || [];
+    const isInstructor = roles.some(role => role.role === "Instructor");
+    if (isInstructor) {
+      document.getElementById("instructor-links").style.display = "block";
+    }
+  });
+</script>
+
+    </div>
+    {% else %}
+    <p class="no-enrollments-message">
+        It looks like you haven't enrolled in any courses yet! Start your learning journey by Browse our <a href="/courses" style="color: #007bff; text-decoration: underline;">available courses</a>.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

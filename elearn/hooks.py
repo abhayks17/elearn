@@ -5,6 +5,43 @@ app_description = "PLatform to learn onlin"
 app_email = "abhay@gmail.com"
 app_license = "mit"
 
+
+
+role_home_page = {
+    "Student": "/home"
+}
+override_whitelisted_methods = {
+    "elearn.api.assignment_submission.submit_assignment": "elearn.api.assignment_submission.submit_assignment"
+}
+doc_events = {
+    "Assignment": {
+        "validate": "elearn.api.assignment.validate_instructor"
+    },
+    "Instructor Application": {
+        "on_update": "elearn.api.Instructor.create_user_for_instructor"
+    },
+     "Assignment Submission": {
+        "validate": "elearn.api.assignment_submission.validate_grading_permission",
+        "on_update": "elearn.api.assignment_submission.update_enrollment_on_grade",
+        }
+}
+scheduler_events = {
+    "daily": [
+        "elearn.api.send_assignment_reminders.send_assignment_reminders"
+    ]
+}
+
+
+web_csrf_exempt = [
+    "elearn.api.assignment_submission.grade_submission"
+]
+
+# Ensure your create_assignment has @frappe.whitelist() in the python file
+
+# Your final hooks.py relevant section:
+
+
+
 # Apps
 # ------------------
 

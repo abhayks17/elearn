@@ -1,0 +1,12 @@
+{% extends "templates/web.html" %}
+
+{% block page_content %}
+<h2>Contact Us</h2>
+<p>If you have questions, please email us at <strong>support@elearn.com</strong></p>
+<form action="/api/method/frappe.www.contact.send_message" method="POST">
+  <input type="text" name="name" placeholder="Your name" required><br>
+  <input type="email" name="email" placeholder="Your email" required><br>
+  <textarea name="message" placeholder="Your message"></textarea><br>
+  <button type="submit">Send</button>
+</form>
+{% endblock %}
