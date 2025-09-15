@@ -20,14 +20,10 @@ This app uses `pre-commit` for code formatting and linting. Please [install pre-
 cd apps/elearn
 pre-commit install
 ```
+## 📸 Screenshots
 
-Pre-commit is configured to use the following tools for checking and formatting your code:
-
-- ruff
-- eslint
-- prettier
-- pyupgrade
-
-### License
-
-mit
+![Home Page](./ss/elearn1.png)
+![Courses](./ss/elearn2.png)
+![Course Details](./ss/elearn3.png)
+![Cousre COntents](./ss/elearn4.png)
+![Teacher Marking](./ss/elearn5.png)
